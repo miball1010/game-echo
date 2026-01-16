@@ -7,10 +7,9 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve'
-  const repoName = 'game-echo' 
   
   return {
-    base: isDev ? '/' : `/${repoName}/`,
+    base: isDev ? '/' : '/game-echo/',
     plugins: [vue(), vueDevTools(), tailwindcss()],
     resolve: {
       alias: {
