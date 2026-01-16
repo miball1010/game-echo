@@ -5,7 +5,7 @@ import { useGameStore } from '@/stores/gameStore'
 
 import router from '@/router'
 import { auth } from '@/services/firebase'
-import { onAuthStateChanged, type User, sendPasswordResetEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth"
+import { onAuthStateChanged, type User, sendPasswordResetEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, signInWithRedirect, getRedirectResult } from "firebase/auth"
 
 export const useAuthStore = defineStore('auth', () => {
   const global = useGlobalStore()
@@ -35,6 +35,9 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = false
     if (user) {
       await game.loadGameData()
+    }
+    else{
+      await handleRedirectResult();
     }
   })
 
@@ -133,19 +136,36 @@ export const useAuthStore = defineStore('auth', () => {
     const provider = new GoogleAuthProvider()
 
     try {
-      const result = await signInWithPopup(auth, provider)
-      currentUser.value = result.user
-      await game.loadGameData()
-      router.push('/')
+      await signInWithRedirect(auth, provider)
+      // const result = await signInWithPopup(auth, provider)
+      // currentUser.value = result.user
+      // await game.loadGameData()
+      // router.push('/')
     } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        global.pushMessage(false, 'Google登入視窗已被關閉')
-      }
-      else {
-        global.pushMessage(false, 'Google 登入錯誤：' + error.code)
-      }
+      global.pushMessage(false, 'Google 登入錯誤：' + error.code)
     }
   }
+   // --- 在這裡處理重定向結果 ---
+   const handleRedirectResult = async () => {
+    try {
+      const result = await getRedirectResult(auth);
+      console.log(result)
+
+      if (result) {
+        // 使用者從重定向回來並已登入
+        currentUser.value = result.user;
+        await game.loadGameData();
+        router.push('/'); // 導航到應用程式的主頁面或您想要的頁面
+        global.pushMessage(true, 'Google 登入成功！');
+      }
+    } catch (error: any) {
+      // 處理重定向過程中的錯誤
+      global.pushMessage(false, 'Google 登入錯誤：' + error.code);
+      console.error('Google redirect sign-in error:', error);
+    } finally {
+      loading.value = false; // 確保在處理完畢後將 loading 設為 false
+    }
+  };
 
   //測試帳號登入
   function testLogin() {
