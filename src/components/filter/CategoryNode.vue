@@ -6,7 +6,7 @@ const store = useGameStore()
 const { nowNode } = storeToRefs(store)
 const { useFilter } = store
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 const props = defineProps<{
   menu: MenuNode[]
   layer: number
@@ -18,8 +18,13 @@ const localNowNode = ref<MenuNode | null>(null)
 function choose(item: MenuNode) {
   nowNode.value = item
   localNowNode.value = item
-  useFilter('menu')
+  useFilter()
 }
+
+watch(() => nowNode.value?.status, (status) => {
+  if (status === 'search')
+    localNowNode.value = null
+})
 
 const itemClass = (item: MenuNode, layer: number) => {
   if (layer === 1) {

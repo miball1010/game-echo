@@ -2,15 +2,20 @@
 import { storeToRefs } from 'pinia'
 import { useGameStore } from '@/stores/gameStore.ts'
 const store = useGameStore()
-const { searchText } = storeToRefs(store)
+const { searchText,nowNode } = storeToRefs(store)
 const { useFilter } = store
+
+function choose(){
+    nowNode.value = {id:'search',status:'search',statusCN:'搜尋'}
+    useFilter()
+}
 </script>
 
 <template>
     <label class="block relative mb-2 px-2">
-        <input placeholder="搜尋 ..." id="search" type="text" v-model="searchText" @keyup.enter="useFilter('search')"
+        <input placeholder="搜尋 ..." id="search" type="text" v-model="searchText" @keyup.enter="choose"
             class="text-sm text-white outline-none w-full px-2 py-1 border-b border-b-[#528AA4]">
-        <button @click="useFilter('search')" class="absolute top-1 right-3 cursor-pointer hover:opacity-80">
+        <button @click="choose" class="absolute top-1 right-3 cursor-pointer hover:opacity-80">
             <span class="text-[#528AA4] material-symbols-outlined ">search</span>
         </button>
     </label>

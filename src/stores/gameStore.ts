@@ -38,6 +38,9 @@ export const useGameStore = defineStore('game', () => {
     games.value = userGames
     gameFilter.value = userGames
     gameIsLoading.value = false
+    if (nowNode.value) {
+      useFilter()
+    }
   }
 
   async function fetchUserGames() {
@@ -99,39 +102,32 @@ export const useGameStore = defineStore('game', () => {
   function menuControl() {
     if (menuIsOpen.value) {
       menuIsOpen.value = false
-      document.body.style.overflow = ''
+      // document.body.style.overflow = ''
     }
     else {
       menuIsOpen.value = true
-      document.body.style.overflow = 'hidden'
+      // document.body.style.overflow = 'hidden'
     }
   }
-
   //篩選game
   const nowNode = ref<MenuNode | null>(null)
   const searchText = ref<string>('')
   const firstFilter = ref<Game[]>([])
 
-  function useFilter(type: string) {
+  function useFilter() {
     visibleCount.value = 10
-
-    if (type === 'search') {
+    if (nowNode.value?.status === 'search') {//搜尋
       gameFilter.value = games.value.filter(g => g.name.toLowerCase().includes(searchText.value.toLowerCase()))
     }
-    if (type === 'menu') {
-      if (nowNode.value?.status === 'all') {//全部
-        gameFilter.value = games.value
-      }
-      else if (nowNode.value?.status) {//大類
-        firstFilter.value = games.value.filter(g => g.status === nowNode.value!.status)
-        gameFilter.value = firstFilter.value
-        if (nowNode.value?.children) {
-          return
-        }
-      }
-      if (!nowNode.value?.status) {//小類
-        gameFilter.value = firstFilter.value.filter(g => g.category.includes(nowNode.value!.statusCN))
-      }
+    else if (nowNode.value?.status === 'all') {//全部
+      gameFilter.value = games.value
+    }
+    else if (nowNode.value?.status) {//大類
+      firstFilter.value = games.value.filter(g => g.status === nowNode.value!.status)
+      gameFilter.value = firstFilter.value
+    }
+    else {//小類
+      gameFilter.value = firstFilter.value.filter(g => g.category.includes(nowNode.value!.statusCN))
     }
     menuControl()
     visibleCount.value = Math.min(10, gameFilter.value.length)
