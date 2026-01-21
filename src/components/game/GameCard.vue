@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Game } from '@/types/game'
-
+import { ref } from 'vue'
 import { useGameStore } from '@/stores/gameStore.ts'
+
 const store = useGameStore()
 const { editModal } = store
 
@@ -15,6 +16,9 @@ const statusMap: Record<string, string> = {
     paused: '暫停',
     todo: '待遊玩'
 }
+
+// 新增：圖片載入狀態
+const imgLoaded = ref(false)
 </script>
 
 <template>
@@ -23,21 +27,29 @@ const statusMap: Record<string, string> = {
             <div :class="{ 'aspect-[4/3]': data.img }" class="relative">
                 <span @click="editModal(false, data)"
                     class="edit shadow-2xl hover:opacity-80 material-symbols-outlined">border_color</span>
-                <img v-if="data.img" :src="data.img" :alt="data.name" loading="lazy" class="w-full h-full object-cover">
+
+                <!-- Skeleton Loading -->
+                <div v-if="data.img && !imgLoaded" class="skeleton absolute inset-0"></div>
+
+                <!-- 圖片 -->
+                <img v-if="data.img" :src="data.img" :alt="data.name" loading="lazy" @load="imgLoaded = true"
+                    class="w-full h-full object-cover transition-opacity duration-300"
+                    :class="imgLoaded ? 'opacity-100' : 'opacity-0'">
+
                 <div v-if="data.status !== 'completed' && data.img"
-                    class="text-sm bg-black/50 text-white text-center p-1 w-full absolute  bottom-0">
+                    class="text-sm bg-black/50 text-white text-center p-1 w-full absolute bottom-0">
                     {{ statusMap[data.status] }}
                 </div>
             </div>
 
             <div class="p-5 flex flex-col gap-3">
                 <div v-if="data.status !== 'completed' && !data.img"
-                    class="text-white bg-[#FF4450] px-3 py-1 w-fit rounded-full text-sm ">{{
-                        statusMap[data.status] }}</div>
-                <div class="text-[#19556D] font-bold">{{ data.name }}</div>
-                <div v-if="data.note" class="text-gray-500 text-sm whitespace-pre-line">小筆記：<br>{{ data.note }}
+                    class="text-white bg-[#FF4450] px-3 py-1 w-fit rounded-full text-sm ">
+                    {{ statusMap[data.status] }}
                 </div>
-                <div :class="data.completedAt ? 'text-[#EDAA5F]' : 'text-gray-300'" class=" text-xs">
+                <div class="text-[#19556D] font-bold">{{ data.name }}</div>
+                <div v-if="data.note" class="text-gray-500 text-sm whitespace-pre-line">小筆記：<br>{{ data.note }}</div>
+                <div :class="data.completedAt ? 'text-[#EDAA5F]' : 'text-gray-300'" class="text-xs">
                     <span v-if="data.startAt">Added · {{ data.startAt }}</span>
                     <span v-if="data.completedAt"><br>Cleared · {{ data.completedAt }}</span>
                 </div>
@@ -90,6 +102,26 @@ const statusMap: Record<string, string> = {
 
 .card:hover .edit {
     transform: translateY(0px);
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+            #e5e5e5 25%,
+            #f2f2f2 37%,
+            #e5e5e5 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease infinite;
+    z-index: 10;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: -100% 0;
+    }
 }
 
 @media screen and (max-width:1023px) {

@@ -125,6 +125,9 @@ export const useGameStore = defineStore('game', () => {
     else if (nowNode.value?.status) {//大類
       firstFilter.value = games.value.filter(g => g.status === nowNode.value!.status)
       gameFilter.value = firstFilter.value
+      visibleCount.value = Math.min(10, gameFilter.value.length)
+      // 大類不執行menuControl()
+      return
     }
     else {//小類
       gameFilter.value = firstFilter.value.filter(g => g.category.includes(nowNode.value!.statusCN))
